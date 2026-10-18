@@ -1,8 +1,15 @@
+using Microsoft.AspNetCore.Server.Kestrel.Transport.NamedPipes;
+using SlotBook.api.Contracts;
+using SlotBook.api.Data;
+using SlotBook.api.Domain;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddSingleton<InMemoryStore>();
+
 
 var app = builder.Build();
 
@@ -13,29 +20,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-var summaries = new[]
+app.MapGet("/slots", (InMemoryStore store) => store.Slots);
+app.MapPost("/slots", (CreateSlotRequest request, InMemoryStore store) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    var slot = new Slot(Guid.NewGuid(), request.Resource, request.Start, request.End);
+    store.AddSlot(slot);
+    return Results.Created($"/slots/{slot.Id}", slot);
+}
+);
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

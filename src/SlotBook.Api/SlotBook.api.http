@@ -1,6 +1,16 @@
 @SlotBook.api_HostAddress = http://localhost:5208
 
-GET {{SlotBook.api_HostAddress}}/weatherforecast/
-Accept: application/json
+#GET {{SlotBook.api_HostAddress}}/weatherforecast/
+#Accept: application/json
+
+POST {{SlotBook.api_HostAddress}}/slots
+Content-Type: application/json
+{
+    "resource": "Sala A",
+    "start": "2026-10-20T10:00:00+03:00",
+    "end": "2026-10-20T11:00:00+03:00"
+}
 
 ###
+
+GET {{SlotBook.api_HostAddress}}/slots
